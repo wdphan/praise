@@ -6,11 +6,13 @@ contract Praise {
     mapping(address => uint) public referrals;
     // mapping of customer addresses to affiliate addresses
     mapping(address => address) public customerReferrals;
-    // mapping of affiliate addresses to timestamp of last referral
-    mapping(address => uint) public lastReferralTimestamp;
+    // mapping of customer addresses to purchase status
+    mapping(address => bool) public customerPurchases;
 
     // event to notify when a referral is recorded
-    event Referral(address indexed affiliate, address indexed customer, uint timestamp);
+    event Referral(address indexed affiliate, address indexed customer);
+    // event to notify when a purchase is recorded
+    event Purchase(address indexed customer);
 
     // function to record a referral
     function refer(address customer) public {
@@ -18,10 +20,16 @@ contract Praise {
         referrals[msg.sender]++;
         // record the customer's referral
         customerReferrals[customer] = msg.sender;
-        // record the timestamp of the referral
-        lastReferralTimestamp[msg.sender] = now;
         // emit the referral event
-        emit Referral(msg.sender, customer, now);
+        emit Referral(msg.sender, customer);
+    }
+
+    // function to record a purchase
+    function recordPurchase(address customer) public {
+        // record the customer's purchase
+        customerPurchases[customer] = true;
+        // emit the purchase event
+        emit Purchase(customer);
     }
 
     // function to calculate and distribute commissions
@@ -30,23 +38,17 @@ contract Praise {
         for(address customer in customerReferrals) {
             address affiliate = customerReferrals[customer];
             // check if the customer made a purchase
-            if (customerMadePurchase(customer)) {
+            if (customerPurchases[customer]) {
                 // calculate the commission for the affiliate
                 uint commission = calculateCommission(affiliate);
                 // transfer the commission to the affiliate
                 affiliate.transfer(commission);
                 // reset the referral count for the affiliate
                 referrals[affiliate] = 0;
+                // reset the purchase status for the customer
+                customerPurchases[customer] = false;
             }
         }
-    }
-
-    // check if the customer made a purchase
-    function customerMadePurchase(address customer) internal view returns (bool) {
-        // this function should be implemented by the merchant
-        // to check if the customer made a purchase
-        // for example, by checking a database or calling an external API
-        return true;
     }
 
     // calculate the commission for the affiliate
