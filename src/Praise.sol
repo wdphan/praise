@@ -30,7 +30,7 @@ contract Praise {
         customerPurchases[customer] = true;
         // emit the purchase event
         emit Purchase(customer);
-    }
+    }//
 
     // function to calculate and distribute commissions
     function distributeCommissions() public {
